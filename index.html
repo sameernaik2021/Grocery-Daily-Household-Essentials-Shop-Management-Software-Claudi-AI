@@ -1,0 +1,856 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kirana Maal · Grocery Shop Manager</title><style>:root{--primary: #1f6f4a;--bg: #f5f7f4;--card: #ffffff;--text: #1d2521;--muted: #66736b;--danger: #b3261e;--warn: #9a6700;--border: #dfe5e0;}
+*{box-sizing: border-box;}
+body{margin: 0;font-family: system-ui,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;background: var(--bg);color: var(--text);}
+.topbar{display: flex;flex-wrap: wrap;gap: 12px;align-items: center;justify-content: space-between;padding: 12px 20px;background: var(--primary);color: #fff;}
+.brand{font-weight: 700;font-size: 1.15rem;}
+.logo{background: #fff;color: var(--primary);padding: 2px 8px;border-radius: 6px;margin-right: 6px;}
+.tabs{display: flex;gap: 6px;flex-wrap: wrap;}
+.tab{font: inherit;background: transparent;color: #fff;border: 1px solid rgba(255,255,255,0.5);padding: 8px 14px;border-radius: 999px;cursor: pointer;}
+.tab:hover,.tab.active{background: #fff;color: var(--primary);}
+.view{padding: 20px;max-width: 1200px;margin: 0 auto;}
+.grid-cards{display: grid;grid-template-columns: repeat(auto-fit,minmax(180px,1fr));gap: 12px;}
+.stat{background: var(--card);border: 1px solid var(--border);border-radius: 12px;padding: 14px;}
+.stat .label{color: var(--muted);font-size: 0.85rem;}
+.stat .value{font-size: 1.5rem;font-weight: 700;margin-top: 4px;}
+.card{background: var(--card);border: 1px solid var(--border);border-radius: 12px;padding: 16px;margin-bottom: 16px;}
+.two-col{display: grid;grid-template-columns: 1fr 1fr;gap: 16px;}
+.bill-layout{display: grid;grid-template-columns: 1.2fr 1fr;gap: 16px;}
+@media (max-width: 820px){.bill-layout,.two-col{grid-template-columns: 1fr;}
+}
+h2{margin: 0 0 12px;font-size: 1.1rem;}
+h3{margin: 0 0 8px;}
+label{display: block;margin: 8px 0;font-size: 0.9rem;color: var(--muted);}
+input,select,textarea{width: 100%;padding: 9px 10px;border: 1px solid var(--border);border-radius: 8px;font: inherit;margin-top: 4px;color: var(--text);background: #fff;}
+textarea{min-height: 120px;font-family: ui-monospace,Menlo,Consolas,monospace;}
+input[readonly]{background: #eef2ef;}
+.form-grid{display: grid;grid-template-columns: repeat(auto-fit,minmax(170px,1fr));gap: 4px 12px;}
+.toolbar{display: flex;gap: 8px;flex-wrap: wrap;align-items: center;margin-bottom: 10px;}
+.toolbar input{flex: 1;min-width: 180px;width: auto;margin-top: 0;}
+.btn{font: inherit;padding: 9px 14px;border-radius: 8px;border: 1px solid var(--border);background: #fff;color: var(--text);cursor: pointer;margin: 4px 4px 4px 0;}
+.btn.primary{background: var(--primary);color: #fff;border-color: var(--primary);}
+.btn.big{width: 100%;padding: 14px;font-size: 1.05rem;}
+.btn.ghost{background: transparent;}
+.btn.danger{color: var(--danger);border-color: #f0c4c0;}
+.btn.small{padding: 4px 8px;font-size: 0.85rem;}
+.btn:disabled{opacity: 0.5;cursor: not-allowed;}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline: 3px solid #8fd1ad;outline-offset: 1px;}
+.product-grid{display: grid;grid-template-columns: repeat(auto-fill,minmax(160px,1fr));gap: 10px;margin-top: 12px;max-height: 520px;overflow: auto;}
+.prod-card{text-align: left;background: #fff;border: 1px solid var(--border);border-radius: 10px;padding: 10px;cursor: pointer;font: inherit;color: var(--text);}
+.prod-card:hover:not(:disabled){border-color: var(--primary);}
+.prod-card small{display: block;color: var(--muted);margin-top: 2px;}
+.table{width: 100%;border-collapse: collapse;font-size: 0.92rem;}
+.table th,.table td{padding: 8px;border-bottom: 1px solid var(--border);text-align: left;vertical-align: top;}
+.table th{color: var(--muted);font-weight: 600;font-size: 0.82rem;}
+.num{text-align: right;white-space: nowrap;}
+.table-wrap{overflow: auto;}
+.qty-input{width: 90px;}
+.total-row{display: flex;justify-content: space-between;font-size: 1.3rem;margin: 14px 0;}
+.badge{display: inline-block;padding: 2px 8px;border-radius: 999px;font-size: 0.78rem;font-weight: 600;border: 1px solid;white-space: nowrap;}
+.badge.ok{background: #e7f5ec;color: #185c3c;border-color: #b6dfc6;}
+.badge.low,.badge.expiring{background: #fff4d6;color: var(--warn);border-color: #f2d68a;}
+.badge.out,.badge.expired{background: #fde8e6;color: var(--danger);border-color: #f0c4c0;}
+.alerts{list-style: none;margin: 0;padding: 0;}
+.alerts li{padding: 8px 0;border-bottom: 1px solid var(--border);}
+.muted{color: var(--muted);}
+.toast{position: fixed;left: 50%;bottom: 24px;transform: translateX(-50%) translateY(150%);background: #1d2521;color: #fff;padding: 12px 18px;border-radius: 10px;transition: transform 0.25s ease;max-width: 90vw;z-index: 10;}
+.toast.show{transform: translateX(-50%) translateY(0);}
+.toast.error{background: var(--danger);}
+.receipt-dialog{border: none;border-radius: 12px;max-width: 380px;width: 90vw;padding: 18px;}
+.dialog-actions{display: flex;gap: 8px;justify-content: flex-end;margin-top: 12px;}
+@media print{body *{visibility: hidden;}
+#receipt,#receipt *{visibility: visible;}
+#receipt{position: absolute;left: 0;top: 0;width: 100%;}
+.dialog-actions{display: none;}
+}</style></head><body><header class="topbar"><div class="brand"><span class="logo">किराना</span> Kirana Maal</div><nav class="tabs" aria-label="Main sections"><button type="button" class="tab" data-action="tab" data-tab="dashboard">Dashboard</button><button type="button" class="tab" data-action="tab" data-tab="billing">Billing</button><button type="button" class="tab" data-action="tab" data-tab="inventory">Inventory</button><button type="button" class="tab" data-action="tab" data-tab="khata">Khata</button></nav></header><noscript><p class="view">This application needs JavaScript enabled.</p></noscript><main id="view" class="view"></main><div id="toast" class="toast" role="status" aria-live="polite"></div><dialog id="receipt-dialog" class="receipt-dialog" aria-labelledby="receipt-title"><div id="receipt"></div><div class="dialog-actions"><button type="button" class="btn" data-action="print-receipt">Print</button><button type="button" class="btn primary" data-action="close-receipt">Close</button></div></dialog><script>(function () {
+'use strict';
+const STORAGE_KEY = 'kirana-maal-v1';
+const EXPIRY_WARN_DAYS = 30;
+const SEED_CSV = `Product_ID,Product_Name,Category,Unit,Purchase_Price_INR,Selling_Price_INR,Stock_Quantity,Reorder_Level,Supplier_ID,Expiry_Date
+K001,Rice Regular,Grains,kg,42,48,120,25,S001,2027-10-15
+K002,Basmati Rice,Grains,kg,85,100,60,15,S001,2027-12-15
+K003,Wheat Flour,Flour,kg,32,38,80,20,S002,2027-06-30
+K004,Toor Dal,Pulses,kg,110,125,35,10,S003,2027-08-31
+K005,Moong Dal,Pulses,kg,95,110,28,10,S003,2027-08-31
+K006,Chana Dal,Pulses,kg,75,88,45,12,S003,2027-09-30
+K007,Sugar,Sweeteners,kg,40,46,90,20,S002,2028-01-31
+K008,Salt,Spices,kg,12,16,100,25,S004,2028-12-31
+K009,Poha,Breakfast,kg,38,45,30,10,S005,2027-05-31
+K010,Suji,Flour,kg,36,42,25,10,S005,2027-06-30
+K011,Mustard Oil,Edible Oil,litre,135,150,40,10,S006,2027-03-31
+K012,Sunflower Oil,Edible Oil,litre,125,145,35,10,S006,2027-03-31
+K013,Ghee,Dairy,litre,520,570,12,5,S007,2027-01-31
+K014,Tea Powder,Beverages,packet,90,105,22,8,S008,2027-04-30
+K015,Coffee Powder,Beverages,packet,150,175,15,5,S008,2027-04-30
+K016,Milk,Tinned Dairy,litre,28,32,40,15,S007,2026-10-20
+K017,Biscuits,Snacks,packet,8,10,100,30,S009,2027-02-28
+K018,Potato Chips,Snacks,packet,10,15,70,20,S009,2027-01-31
+K019,Instant Noodles,Packaged Food,packet,12,15,60,20,S010,2027-04-30
+K020,Tomato Ketchup,Condiments,bottle,55,65,18,6,S010,2027-06-30
+K021,Turmeric Powder,Spices,packet,25,30,30,10,S011,2027-07-31
+K022,Red Chilli Powder,Spices,packet,35,42,25,8,S011,2027-07-31
+K023,Coriander Powder,Spices,packet,28,34,22,8,S011,2027-07-31
+K024,Cumin Seeds,Spices,kg,220,250,8,3,S011,2027-09-30
+K025,Black Pepper,Spices,kg,480,550,5,2,S011,2027-09-30
+K026,Toothpaste,Personal Care,tube,65,75,35,10,S012,2028-12-31
+K027,Toothbrush,Personal Care,piece,22,30,40,12,S012,2030-12-31
+K028,Bathing Soap,Personal Care,piece,28,35,60,20,S012,2028-12-31
+K029,Shampoo,Personal Care,bottle,85,100,25,8,S012,2028-12-31
+K030,Hair Oil,Personal Care,bottle,75,90,18,6,S012,2028-12-31
+K031,Laundry Detergent,Household,kg,65,78,30,10,S013,2028-12-31
+K032,Dishwash Bar,Household,piece,12,15,50,15,S013,2028-12-31
+K033,Floor Cleaner,Household,bottle,95,115,12,4,S013,2028-12-31
+K034,Toilet Cleaner,Household,bottle,90,105,15,5,S013,2028-12-31
+K035,Garbage Bags,Household,packet,35,45,20,8,S014,2028-12-31
+K036,Matchbox,Household,box,2,3,200,50,S014,2028-12-31
+K037,Candles,Household,packet,15,20,35,10,S014,2028-12-31
+K038,Agarsbatti,Puja Supplies,packet,20,25,40,10,S014,2028-12-31
+K039,Notebook,Stationery,piece,25,35,25,8,S015,2030-12-31
+K040,Ball Pen,Stationery,piece,5,10,100,25,S015,2030-12-31
+K041,Green Peas,Canned Food,can,45,55,15,5,S010,2027-08-31
+K042,Jam,Spreads,jar,70,85,12,4,S010,2027-05-31
+K043,Peanut Butter,Spreads,jar,160,190,8,3,S010,2027-06-30
+K044,Honey,Spreads,bottle,120,145,10,3,S010,2027-09-30
+K045,Tomato Sauce,Condiments,bottle,40,50,20,6,S010,2027-06-30
+K046,Peanuts,Snacks,kg,100,120,20,8,S005,2027-06-30
+K047,Roasted Chana,Snacks,kg,80,95,15,5,S005,2027-06-30
+K048,Cashews,Dry Fruits,kg,650,750,5,2,S005,2027-07-31
+K049,Raisins,Dry Fruits,kg,250,300,8,3,S005,2027-07-31
+K050,Almonds,Dry Fruits,kg,700,800,5,2,S005,2027-07-31`;
+const $ = (sel) => document.querySelector(sel);
+const esc = (v) => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, (c) =>
+({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const toPaise = (rupees) => Math.round(Number(rupees) * 100);
+const fmt = (paise) => '₹' + (Number(paise) / 100).toLocaleString('en-IN', {
+minimumFractionDigits: 2, maximumFractionDigits: 2
+});
+const round3 = (n) => Math.round(n * 1000) / 1000;
+const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+const num = (v) => (v === '' || v === null || v === undefined ? 0 : Number(v));
+const uid = (prefix) => prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+const isToday = (iso) => new Date(iso).toDateString() === new Date().toDateString();
+function daysUntil(ymd) {
+const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || '');
+if (!m) return null;
+const d = new Date();
+const today = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+return Math.round((Date.UTC(+m[1], +m[2] - 1, +m[3]) - today) / 86400000);
+}
+function stockStatus(p) {
+const d = daysUntil(p.expiry);
+if (p.stock <= 0) return { key: 'out', label: 'Out of stock' };
+if (d !== null && d < 0) return { key: 'expired', label: 'Expired' };
+if (p.stock <= p.reorder) return { key: 'low', label: 'Low stock' };
+if (d !== null && d <= EXPIRY_WARN_DAYS) return { key: 'expiring', label: 'Expiring soon' };
+return { key: 'ok', label: 'OK' };
+}
+function parseCSV(text) {
+const rows = [];
+let row = [];
+let field = '';
+let inQuotes = false;
+for (let i = 0; i < text.length; i++) {
+const c = text[i];
+if (inQuotes) {
+if (c === '"') {
+if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+} else {
+field += c;
+}
+} else if (c === '"') {
+inQuotes = true;
+} else if (c === ',') {
+row.push(field.trim());
+field = '';
+} else if (c === '\n' || c === '\r') {
+if (c === '\r' && text[i + 1] === '\n') i++;
+row.push(field.trim());
+field = '';
+if (row.some((x) => x !== '')) rows.push(row);
+row = [];
+} else {
+field += c;
+}
+}
+row.push(field.trim());
+if (row.some((x) => x !== '')) rows.push(row);
+return rows;
+}
+function rowsToObjects(rows) {
+if (rows.length < 2) return [];
+const header = rows[0];
+return rows.slice(1).map((r) => {
+const o = {};
+header.forEach((h, i) => { o[h] = r[i] !== undefined ? r[i] : ''; });
+return o;
+});
+}
+function rowToProduct(o) {
+return {
+id: String(o.Product_ID || '').trim(),
+name: String(o.Product_Name || '').trim(),
+category: String(o.Category || '').trim(),
+unit: String(o.Unit || '').trim() || 'pcs',
+purchase: toPaise(num(o.Purchase_Price_INR)),
+price: toPaise(num(o.Selling_Price_INR)),
+stock: round3(num(o.Stock_Quantity)),
+reorder: round3(num(o.Reorder_Level)),
+supplier: String(o.Supplier_ID || '').trim(),
+expiry: String(o.Expiry_Date || '').trim()
+};
+}
+function validateProduct(p) {
+if (!p.id) return 'Product ID is required.';
+if (!p.name) return 'Product name is required.';
+const labels = { purchase: 'Purchase price', price: 'Selling price', stock: 'Stock', reorder: 'Reorder level' };
+for (const key of Object.keys(labels)) {
+if (!Number.isFinite(p[key]) || p[key] < 0) return `${labels[key]} must be a number of 0 or more.`;
+}
+if (p.expiry && daysUntil(p.expiry) === null) return 'Expiry date must look like YYYY-MM-DD.';
+return null;
+}
+function nextProductId() {
+const n = state.products.reduce((m, p) => {
+const x = /^K(\d+)$/.exec(p.id);
+return x ? Math.max(m, Number(x[1])) : m;
+}, 0);
+return 'K' + String(n + 1).padStart(3, '0');
+}
+const findProduct = (id) => state.products.find((p) => p.id === id);
+const customerName = (id) => {
+if (!id) return 'Walk-in';
+const c = state.customers.find((x) => x.id === id);
+return c ? c.name : 'Unknown';
+};
+function balanceOf(customerId) {
+return sum(state.ledger
+.filter((e) => e.customerId === customerId)
+.map((e) => (e.type === 'sale' ? e.amount : -e.amount)));
+}
+function seedState() {
+return {
+version: 1,
+products: rowsToObjects(parseCSV(SEED_CSV)).map(rowToProduct),
+customers: [],
+ledger: [],
+sales: [],
+nextInvoice: 1001
+};
+}
+function loadState() {
+try {
+const raw = localStorage.getItem(STORAGE_KEY);
+if (!raw) return seedState();
+const s = JSON.parse(raw);
+if (s && Array.isArray(s.products) && Array.isArray(s.customers) &&
+Array.isArray(s.ledger) && Array.isArray(s.sales)) {
+s.nextInvoice = s.nextInvoice || 1001;
+return s;
+}
+} catch (e) {
+console.warn('Stored data unreadable, starting from sample data.', e);
+}
+return seedState();
+}
+function commit(next) {
+try {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+} catch (e) {
+toast('Could not save. Browser storage is full or disabled.', 'error');
+return false;
+}
+state = next;
+return true;
+}
+let state = loadState();
+let view = 'dashboard';
+let cart = [];                 // [{ id, qty }] – current bill, not persisted
+let billSearch = '';
+let billCustomerId = '';
+let invQuery = '';
+let editingId = null;
+let selectedCustomerId = '';
+let lastSale = null;
+let toastTimer = null;
+function toast(msg, type) {
+const el = $('#toast');
+el.textContent = msg;
+el.className = 'toast show' + (type === 'error' ? ' error' : '');
+clearTimeout(toastTimer);
+toastTimer = setTimeout(() => { el.className = 'toast'; }, 3200);
+}
+function render() {
+document.querySelectorAll('.tab').forEach((b) => {
+const on = b.dataset.tab === view;
+b.classList.toggle('active', on);
+b.setAttribute('aria-current', on ? 'page' : 'false');
+});
+if (view === 'dashboard') $('#view').innerHTML = dashboardHTML();
+else if (view === 'billing') renderBilling();
+else if (view === 'inventory') renderInventory();
+else if (view === 'khata') $('#view').innerHTML = khataHTML();
+}
+function setView(v) {
+view = v;
+if (v !== 'inventory') editingId = null;
+render();
+}
+function stat(label, value) {
+return `<div class="stat"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div></div>`;
+}
+function dashboardHTML() {
+const todays = state.sales.filter((s) => isToday(s.date));
+const salesToday = sum(todays.map((s) => s.total));
+const profitToday = sum(todays.flatMap((s) => s.lines).map((l) => l.amount - l.cost));
+const rated = state.products.map((p) => ({ p, st: stockStatus(p) }));
+const low = rated.filter((x) => x.st.key === 'low' || x.st.key === 'out');
+const expiring = rated.filter((x) => x.st.key === 'expiring' || x.st.key === 'expired');
+const khataDue = sum(state.customers.map((c) => Math.max(0, balanceOf(c.id))));
+const recent = state.sales.slice(-8).reverse();
+return `
+<div class="grid-cards">
+${stat('Sales today', fmt(salesToday))}
+${stat('Bills today', todays.length)}
+${stat('Gross profit today', fmt(profitToday))}
+${stat('Khata dues', fmt(khataDue))}
+${stat('Low / out of stock', low.length)}
+${stat('Expiring / expired', expiring.length)}
+</div>
+<div class="two-col" style="margin-top:16px">
+<section class="card">
+<h2>Needs attention</h2>
+${alertList(low, expiring)}
+</section>
+<section class="card">
+<h2>Recent bills</h2>
+${recent.length ? recentTable(recent) : '<p class="muted">No bills yet. Make a sale in Billing.</p>'}
+</section>
+</div>`;
+}
+function alertList(low, expiring) {
+const items = [...low, ...expiring].slice(0, 15);
+if (!items.length) return '<p class="muted">No low-stock or expiry alerts. ✅</p>';
+return `<ul class="alerts">${items.map(({ p, st }) =>
+`<li><span class="badge ${st.key}">${esc(st.label)}</span> <strong>${esc(p.name)}</strong>
+— ${esc(p.stock)} ${esc(p.unit)} in stock${p.expiry ? ' · expiry ' + esc(p.expiry) : ''}</li>`
+).join('')}</ul>`;
+}
+function recentTable(list) {
+return `<div class="table-wrap"><table class="table">
+<thead><tr><th>Invoice</th><th>When</th><th>Customer</th><th>Paid by</th><th class="num">Total</th></tr></thead>
+<tbody>${list.map((s) => `<tr>
+<td>${esc(s.id)}</td>
+<td>${esc(new Date(s.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }))}</td>
+<td>${esc(customerName(s.customerId))}</td>
+<td>${esc(s.method)}</td>
+<td class="num">${fmt(s.total)}</td></tr>`).join('')}</tbody>
+</table></div>`;
+}
+function renderBilling() {
+$('#view').innerHTML = `
+<div class="bill-layout">
+<section class="card">
+<h2>Products</h2>
+<input id="bill-search" type="search" autocomplete="off"
+placeholder="Search by name, ID or category…" value="${esc(billSearch)}">
+<div id="bill-results" class="product-grid"></div>
+</section>
+<section class="card">
+<h2>Current bill</h2>
+<label>Customer
+<select id="bill-customer">${customerOptions()}</select>
+</label>
+<div id="cart"></div>
+<label>Payment
+<select id="bill-method">
+<option value="Cash">Cash</option>
+<option value="UPI">UPI</option>
+<option value="Khata">Khata (credit)</option>
+</select>
+</label>
+<div class="total-row"><span>Total</span><strong id="bill-total">₹0.00</strong></div>
+<button type="button" class="btn primary big" data-action="complete-sale">Complete sale &amp; show receipt</button>
+<button type="button" class="btn ghost" data-action="clear-cart">Clear bill</button>
+</section>
+</div>`;
+$('#bill-search').addEventListener('input', (e) => {
+billSearch = e.target.value;
+renderBillResults();
+});
+$('#bill-customer').addEventListener('change', (e) => { billCustomerId = e.target.value; });
+renderBillResults();
+renderCart();
+}
+function customerOptions() {
+return '<option value="">Walk-in (no khata)</option>' + state.customers.map((c) =>
+`<option value="${esc(c.id)}" ${c.id === billCustomerId ? 'selected' : ''}>${esc(c.name)}${c.phone ? ' · ' + esc(c.phone) : ''}</option>`
+).join('');
+}
+function renderBillResults() {
+const q = billSearch.trim().toLowerCase();
+const matches = state.products
+.filter((p) => !q || [p.name, p.id, p.category].some((x) => String(x).toLowerCase().includes(q)))
+.slice(0, 40);
+const box = $('#bill-results');
+if (!matches.length) {
+box.innerHTML = '<p class="muted">No products match. Add them in Inventory.</p>';
+return;
+}
+box.innerHTML = matches.map((p) => {
+const out = p.stock <= 0;
+return `<button type="button" class="prod-card" data-action="add-to-cart" data-id="${esc(p.id)}" ${out ? 'disabled' : ''}>
+<strong>${esc(p.name)}</strong>
+<small>${fmt(p.price)} / ${esc(p.unit)}</small>
+<small>${out ? 'Out of stock' : 'In stock: ' + esc(p.stock) + ' ' + esc(p.unit)}</small>
+</button>`;
+}).join('');
+}
+function cartTotal() {
+return sum(cart.map((i) => {
+const p = findProduct(i.id);
+return p ? Math.round(p.price * i.qty) : 0;
+}));
+}
+function renderCart() {
+const box = $('#cart');
+if (!cart.length) {
+box.innerHTML = '<p class="muted">No items yet. Tap a product to add it.</p>';
+} else {
+box.innerHTML = `<div class="table-wrap"><table class="table">
+<thead><tr><th>Item</th><th>Qty</th><th class="num">Amount</th><th></th></tr></thead>
+<tbody>${cart.map((item) => {
+const p = findProduct(item.id);
+const amt = p ? Math.round(p.price * item.qty) : 0;
+return `<tr>
+<td>${esc(p ? p.name : item.id)}<br><small class="muted">${fmt(p ? p.price : 0)} / ${esc(p ? p.unit : '')}</small></td>
+<td><input type="number" class="qty-input" min="0" step="0.001" value="${esc(item.qty)}"
+data-change="cart-qty" data-id="${esc(item.id)}" aria-label="Quantity"></td>
+<td class="num">${fmt(amt)}</td>
+<td><button type="button" class="btn small danger" data-action="remove-from-cart"
+data-id="${esc(item.id)}" aria-label="Remove item">✕</button></td>
+</tr>`;
+}).join('')}</tbody>
+</table></div>`;
+}
+$('#bill-total').textContent = fmt(cartTotal());
+}
+function renderInventory() {
+const p = editingId ? findProduct(editingId) : null;
+const v = (k) => esc(p ? p[k] : '');
+const rupees = (k) => (p ? (p[k] / 100).toFixed(2) : '');
+$('#view').innerHTML = `
+<section class="card">
+<h2>${p ? 'Edit product' : 'Add product'}</h2>
+<form data-form="product">
+<div class="form-grid">
+<label>Product ID
+<input name="id" value="${v('id')}" ${p ? 'readonly' : ''} placeholder="Auto if blank">
+</label>
+<label>Product name *
+<input name="name" required value="${v('name')}">
+</label>
+<label>Category
+<input name="category" value="${v('category')}">
+</label>
+<label>Unit
+<input name="unit" value="${v('unit')}" placeholder="kg, litre, pcs">
+</label>
+<label>Purchase price (₹)
+<input name="purchase" type="number" min="0" step="0.01" required value="${rupees('purchase')}">
+</label>
+<label>Selling price (₹)
+<input name="price" type="number" min="0" step="0.01" required value="${rupees('price')}">
+</label>
+<label>Stock
+<input name="stock" type="number" min="0" step="0.001" required value="${v('stock')}">
+</label>
+<label>Reorder level
+<input name="reorder" type="number" min="0" step="0.001" required value="${v('reorder')}">
+</label>
+<label>Supplier ID
+<input name="supplier" value="${v('supplier')}">
+</label>
+<label>Expiry date
+<input name="expiry" type="date" value="${v('expiry')}">
+</label>
+</div>
+<p class="muted">Changing Stock here is a manual adjustment.</p>
+<button type="submit" class="btn primary">${p ? 'Save changes' : 'Add product'}</button>
+${p ? '<button type="button" class="btn ghost" data-action="cancel-edit">Cancel</button>' : ''}
+</form>
+</section>
+<section class="card">
+<div class="toolbar">
+<input id="inv-search" type="search" placeholder="Search products…" value="${esc(invQuery)}">
+<button type="button" class="btn" data-action="export-csv">Export CSV</button>
+</div>
+<div id="inv-table"></div>
+</section>
+<section class="card">
+<h2>Import CSV</h2>
+<p class="muted">Paste CSV with the headers Product_ID, Product_Name, Category, Unit,
+Purchase_Price_INR, Selling_Price_INR, Stock_Quantity, Reorder_Level, Supplier_ID, Expiry_Date.
+Existing Product_IDs are updated; new ones are added. The import is all-or-nothing.</p>
+<textarea id="csv-input" placeholder="Paste CSV text here"></textarea>
+<button type="button" class="btn primary" data-action="import-csv">Import</button>
+</section>`;
+$('#inv-search').addEventListener('input', (e) => {
+invQuery = e.target.value;
+renderInvTable();
+});
+renderInvTable();
+}
+function renderInvTable() {
+const q = invQuery.trim().toLowerCase();
+const rows = state.products.filter((p) =>
+!q || [p.id, p.name, p.category, p.supplier].some((x) => String(x).toLowerCase().includes(q)));
+const box = $('#inv-table');
+if (!rows.length) {
+box.innerHTML = '<p class="muted">No products found.</p>';
+return;
+}
+box.innerHTML = `<div class="table-wrap"><table class="table">
+<thead><tr>
+<th>ID</th><th>Product</th><th>Category</th><th>Unit</th>
+<th class="num">Buy</th><th class="num">Sell</th><th class="num">Stock</th>
+<th class="num">Reorder</th><th>Expiry</th><th>Status</th><th></th>
+</tr></thead>
+<tbody>${rows.map((p) => {
+const st = stockStatus(p);
+return `<tr>
+<td>${esc(p.id)}</td><td>${esc(p.name)}</td><td>${esc(p.category)}</td><td>${esc(p.unit)}</td>
+<td class="num">${fmt(p.purchase)}</td><td class="num">${fmt(p.price)}</td>
+<td class="num">${esc(p.stock)}</td><td class="num">${esc(p.reorder)}</td>
+<td>${esc(p.expiry || '—')}</td>
+<td><span class="badge ${st.key}">${esc(st.label)}</span></td>
+<td>
+<button type="button" class="btn small" data-action="edit-product" data-id="${esc(p.id)}">Edit</button>
+<button type="button" class="btn small danger" data-action="delete-product" data-id="${esc(p.id)}">Delete</button>
+</td>
+</tr>`;
+}).join('')}</tbody>
+</table></div>`;
+}
+function khataHTML() {
+const rows = state.customers.map((c) => ({ c, bal: balanceOf(c.id) }));
+const selected = state.customers.find((c) => c.id === selectedCustomerId);
+const list = rows.length
+? `<div class="table-wrap"><table class="table">
+<thead><tr><th>Name</th><th>Phone</th><th class="num">Balance</th><th></th></tr></thead>
+<tbody>${rows.map(({ c, bal }) => `<tr>
+<td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td>
+<td class="num">${fmt(bal)}</td>
+<td><button type="button" class="btn small" data-action="open-customer" data-id="${esc(c.id)}">Open</button></td>
+</tr>`).join('')}</tbody></table></div>`
+: '<p class="muted">No customers yet.</p>';
+return `
+<div class="two-col">
+<section class="card">
+<h2>Add customer</h2>
+<form data-form="customer">
+<label>Name *<input name="name" required></label>
+<label>Phone (optional)<input name="phone" type="tel" inputmode="tel" maxlength="15"></label>
+<button type="submit" class="btn primary">Add customer</button>
+</form>
+<h2 style="margin-top:20px">Customers</h2>
+${list}
+</section>
+<section class="card">
+${selected ? customerDetail(selected) : '<p class="muted">Select a customer to see their khata statement.</p>'}
+</section>
+</div>`;
+}
+function customerDetail(c) {
+let running = 0;
+const lines = state.ledger
+.filter((e) => e.customerId === c.id)
+.map((e) => {
+const debit = e.type === 'sale' ? e.amount : 0;
+const credit = e.type === 'payment' ? e.amount : 0;
+running += debit - credit;
+const desc = e.type === 'sale' ? 'Khata sale ' + esc(e.ref) : 'Payment received';
+return `<tr>
+<td>${esc(fmtDate(e.date))}</td><td>${desc}</td>
+<td class="num">${debit ? fmt(debit) : '—'}</td>
+<td class="num">${credit ? fmt(credit) : '—'}</td>
+<td class="num">${fmt(running)}</td></tr>`;
+});
+return `
+<h2>${esc(c.name)}</h2>
+<p class="muted">${c.phone ? esc(c.phone) : 'No phone'} · Outstanding: <strong>${fmt(running)}</strong></p>
+<form data-form="payment" data-id="${esc(c.id)}">
+<div class="toolbar">
+<input name="amount" type="number" min="0.01" step="0.01" required placeholder="Amount ₹" aria-label="Payment amount">
+<button type="submit" class="btn primary">Record payment</button>
+</div>
+</form>
+<div class="table-wrap"><table class="table">
+<thead><tr><th>Date</th><th>Details</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead>
+<tbody>${lines.join('') || '<tr><td colspan="5" class="muted">No transactions yet.</td></tr>'}</tbody>
+</table></div>`;
+}
+function showReceipt(sale) {
+const rows = sale.lines.map((l) => `<tr>
+<td>${esc(l.name)}<br><small>${esc(l.qty)} ${esc(l.unit)} × ${fmt(l.rate)}</small></td>
+<td class="num">${fmt(l.amount)}</td></tr>`).join('');
+const cust = sale.customerId ? state.customers.find((c) => c.id === sale.customerId) : null;
+$('#receipt').innerHTML = `
+<h3 id="receipt-title">Kirana Maal · किराना माल</h3>
+<p class="muted">Invoice ${esc(sale.id)}<br>${esc(new Date(sale.date).toLocaleString('en-IN'))}<br>
+${cust ? 'Customer: ' + esc(cust.name) + '<br>' : ''}Paid by: ${esc(sale.method)}</p>
+<table class="table"><tbody>${rows}</tbody></table>
+<div class="total-row"><span>Total</span><strong>${fmt(sale.total)}</strong></div>
+<p class="muted">Thank you for shopping with us!</p>`;
+const dlg = $('#receipt-dialog');
+if (typeof dlg.showModal === 'function') dlg.showModal();
+else dlg.setAttribute('open', '');
+}
+function csvCell(v) {
+const s = String(v === undefined || v === null ? '' : v);
+return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+const actions = {
+tab: (el) => setView(el.dataset.tab),
+'add-to-cart': (el) => {
+const p = findProduct(el.dataset.id);
+if (!p) return;
+const existing = cart.find((c) => c.id === p.id);
+const current = existing ? existing.qty : 0;
+const addQty = Math.min(1, round3(p.stock - current));
+if (addQty <= 0) return toast(`${p.name}: only ${p.stock} ${p.unit} in stock.`, 'error');
+if (existing) existing.qty = round3(existing.qty + addQty);
+else cart.push({ id: p.id, qty: addQty });
+renderCart();
+},
+'remove-from-cart': (el) => {
+cart = cart.filter((c) => c.id !== el.dataset.id);
+renderCart();
+},
+'clear-cart': () => {
+cart = [];
+renderCart();
+},
+'complete-sale': () => {
+if (!cart.length) return toast('Add at least one item to the bill.', 'error');
+const method = $('#bill-method').value;
+const customerId = $('#bill-customer').value;
+if (method === 'Khata' && !customerId) {
+return toast('Khata sales need a customer. Choose one or use another payment method.', 'error');
+}
+const next = clone(state);
+const lines = [];
+let total = 0;
+for (const item of cart) {
+const p = next.products.find((x) => x.id === item.id);
+if (!p) return toast('A product in this bill no longer exists. Please rebuild the bill.', 'error');
+if (item.qty > p.stock + 1e-9) {
+return toast(`Not enough stock for ${p.name}. Available: ${p.stock} ${p.unit}.`, 'error');
+}
+const amount = Math.round(p.price * item.qty);
+lines.push({
+id: p.id, name: p.name, unit: p.unit, qty: item.qty,
+rate: p.price, amount, cost: Math.round(p.purchase * item.qty)
+});
+total += amount;
+p.stock = round3(p.stock - item.qty);
+}
+const invoiceId = 'INV-' + next.nextInvoice;
+next.nextInvoice += 1;
+const sale = {
+id: invoiceId,
+date: new Date().toISOString(),
+lines,
+total,
+method,
+customerId: customerId || null
+};
+next.sales.push(sale);
+if (method === 'Khata') {
+next.ledger.push({ id: uid('L'), customerId, type: 'sale', amount: total, ref: invoiceId, date: sale.date });
+}
+if (!commit(next)) return;
+cart = [];
+lastSale = sale;
+toast(`Sale ${invoiceId} saved: ${fmt(total)}`);
+renderBilling();
+showReceipt(sale);
+},
+'edit-product': (el) => {
+editingId = el.dataset.id;
+renderInventory();
+window.scrollTo({ top: 0, behavior: 'smooth' });
+},
+'cancel-edit': () => {
+editingId = null;
+renderInventory();
+},
+'delete-product': (el) => {
+const id = el.dataset.id;
+const p = findProduct(id);
+if (!p) return;
+if (!window.confirm(`Delete "${p.name}" from inventory? Past bills keep their details.`)) return;
+const next = clone(state);
+next.products = next.products.filter((x) => x.id !== id);
+if (!commit(next)) return;
+cart = cart.filter((c) => c.id !== id);
+if (editingId === id) editingId = null;
+toast('Product deleted.');
+renderInventory();
+},
+'export-csv': () => {
+const header = ['Product_ID', 'Product_Name', 'Category', 'Unit', 'Purchase_Price_INR',
+'Selling_Price_INR', 'Stock_Quantity', 'Reorder_Level', 'Supplier_ID', 'Expiry_Date'];
+const lines = [header.join(',')].concat(state.products.map((p) => [
+p.id, p.name, p.category, p.unit, (p.purchase / 100).toFixed(2), (p.price / 100).toFixed(2),
+p.stock, p.reorder, p.supplier, p.expiry
+].map(csvCell).join(',')));
+const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'kirana_inventory.csv';
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(() => URL.revokeObjectURL(url), 1000);
+},
+'import-csv': () => {
+const text = ($('#csv-input').value || '').trim();
+if (!text) return toast('Paste CSV text first.', 'error');
+const table = parseCSV(text);
+const header = table[0] || [];
+const required = ['Product_ID', 'Product_Name', 'Purchase_Price_INR', 'Selling_Price_INR', 'Stock_Quantity'];
+const missing = required.filter((h) => !header.includes(h));
+if (missing.length) return toast('Missing column(s): ' + missing.join(', '), 'error');
+const rows = rowsToObjects(table);
+if (!rows.length) return toast('No data rows found.', 'error');
+const incoming = [];
+for (let i = 0; i < rows.length; i++) {
+const p = rowToProduct(rows[i]);
+const err = validateProduct(p);
+if (err) return toast(`Row ${i + 2}: ${err}`, 'error');
+incoming.push(p);
+}
+const next = clone(state);
+for (const p of incoming) {
+const i = next.products.findIndex((x) => x.id === p.id);
+if (i >= 0) next.products[i] = p;
+else next.products.push(p);
+}
+if (!commit(next)) return;
+toast(`Imported ${incoming.length} product(s).`);
+renderInventory();
+},
+'open-customer': (el) => {
+selectedCustomerId = el.dataset.id;
+render();
+},
+'print-receipt': () => window.print(),
+'close-receipt': () => {
+const dlg = $('#receipt-dialog');
+if (typeof dlg.close === 'function') dlg.close();
+else dlg.removeAttribute('open');
+}
+};
+const changes = {
+'cart-qty': (el) => {
+const id = el.dataset.id;
+const item = cart.find((c) => c.id === id);
+if (!item) return;
+const qty = round3(Number(el.value));
+const p = findProduct(id);
+if (!Number.isFinite(qty) || qty <= 0 || !p) {
+cart = cart.filter((c) => c.id !== id);
+} else if (qty > p.stock) {
+toast(`Only ${p.stock} ${p.unit} of ${p.name} available.`, 'error');
+if (p.stock > 0) item.qty = p.stock;
+else cart = cart.filter((c) => c.id !== id);
+} else {
+item.qty = qty;
+}
+renderCart();
+}
+};
+const forms = {
+product(form) {
+const fd = new FormData(form);
+const isEdit = Boolean(editingId);
+const p = {
+id: isEdit ? editingId : (String(fd.get('id') || '').trim() || nextProductId()),
+name: String(fd.get('name') || '').trim(),
+category: String(fd.get('category') || '').trim(),
+unit: String(fd.get('unit') || '').trim() || 'pcs',
+purchase: toPaise(fd.get('purchase')),
+price: toPaise(fd.get('price')),
+stock: round3(num(fd.get('stock'))),
+reorder: round3(num(fd.get('reorder'))),
+supplier: String(fd.get('supplier') || '').trim(),
+expiry: String(fd.get('expiry') || '').trim()
+};
+let err = validateProduct(p);
+if (!err && !isEdit && state.products.some((x) => x.id === p.id)) {
+err = `Product ID ${p.id} already exists.`;
+}
+if (err) return toast(err, 'error');
+const next = clone(state);
+if (isEdit) {
+const i = next.products.findIndex((x) => x.id === editingId);
+if (i < 0) return toast('This product no longer exists.', 'error');
+next.products[i] = p;
+} else {
+next.products.push(p);
+}
+if (!commit(next)) return;
+editingId = null;
+toast(isEdit ? 'Product updated.' : 'Product added.');
+renderInventory();
+},
+customer(form) {
+const fd = new FormData(form);
+const name = String(fd.get('name') || '').trim();
+if (!name) return toast('Customer name is required.', 'error');
+const customer = {
+id: uid('C'),
+name,
+phone: String(fd.get('phone') || '').trim(),
+createdAt: new Date().toISOString()
+};
+const next = clone(state);
+next.customers.push(customer);
+if (!commit(next)) return;
+selectedCustomerId = customer.id;
+toast('Customer added.');
+render();
+},
+payment(form) {
+const id = form.dataset.id;
+if (!state.customers.some((c) => c.id === id)) return toast('Customer not found.', 'error');
+const amount = toPaise(new FormData(form).get('amount'));
+if (!Number.isFinite(amount) || amount <= 0) return toast('Enter a valid amount.', 'error');
+const due = balanceOf(id);
+if (due <= 0) return toast('This customer has no outstanding dues.', 'error');
+if (amount > due) return toast(`Amount exceeds the outstanding ${fmt(due)}.`, 'error');
+const next = clone(state);
+next.ledger.push({ id: uid('L'), customerId: id, type: 'payment', amount, ref: '', date: new Date().toISOString() });
+if (!commit(next)) return;
+toast(`Payment of ${fmt(amount)} recorded.`);
+render();
+}
+};
+document.addEventListener('click', (e) => {
+const el = e.target.closest('[data-action]');
+if (el && actions[el.dataset.action]) actions[el.dataset.action](el);
+});
+document.addEventListener('change', (e) => {
+const el = e.target.closest('[data-change]');
+if (el && changes[el.dataset.change]) changes[el.dataset.change](el);
+});
+document.addEventListener('submit', (e) => {
+e.preventDefault();
+const form = e.target;
+if (form.dataset.form && forms[form.dataset.form]) forms[form.dataset.form](form);
+});
+if (!localStorage.getItem(STORAGE_KEY)) commit(state); // persist sample data on first run
+render();
+})();</script></body></html>
